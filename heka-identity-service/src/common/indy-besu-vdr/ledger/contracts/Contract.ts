@@ -26,7 +26,11 @@ export class Contract {
   }
 
   protected static readContractSpec(file: string) {
-    const contractFilePath = path.resolve(__dirname, `./abi/${file}`)
+    const dir =
+      typeof __dirname !== 'undefined'
+        ? __dirname
+        : path.resolve(process.cwd(), 'src/common/indy-besu-vdr/ledger/contracts')
+    const contractFilePath = path.resolve(dir, `./abi/${file}`)
     const spec = fs.readFileSync(contractFilePath, 'utf8')
     return JSON.parse(spec)
   }

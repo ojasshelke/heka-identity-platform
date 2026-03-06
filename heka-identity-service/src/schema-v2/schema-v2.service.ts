@@ -3,7 +3,6 @@ import {
   OpenId4VciCredentialConfigurationSupported,
   OpenId4VciCredentialFormatProfile,
 } from '@credo-ts/openid4vc'
-import { OpenId4VcIssuerRepository } from '@credo-ts/openid4vc/build/openid4vc-issuer/repository'
 import { EntityManager } from '@mikro-orm/core'
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 
@@ -277,10 +276,7 @@ export class SchemaV2Service {
   }): Promise<SchemaRegistration> {
     const { tenantAgent, schema, credentialFormat, network, did } = prop
 
-    const issuerRepository = tenantAgent.dependencyManager.resolve(OpenId4VcIssuerRepository)
-
-    const issuer = await issuerRepository.getByIssuerId(tenantAgent.context, did)
-    const issuerId = issuer.issuerId
+    const issuer = await tenantAgent.openid4vc.issuer.getIssuerByIssuerId(did)
 
     const supportedCredentialId = `${schema.name}:${network}:${credentialFormat}`
 
@@ -311,8 +307,8 @@ export class SchemaV2Service {
     }
 
     // update metadata
-    await tenantAgent.modules.openId4VcIssuer.updateIssuerMetadata({
-      issuerId,
+    await tenantAgent.openid4vc.issuer.updateIssuerMetadata({
+      issuerId: issuer.issuerId,
       credentialConfigurationsSupported: {
         ...issuer.credentialConfigurationsSupported,
         // TODO: Fix typechecks
@@ -346,8 +342,7 @@ export class SchemaV2Service {
   private async oid4vcUpdateSchemaDisplay(prop: { tenantAgent: TenantAgent; schema: Schema; did: string }) {
     const { tenantAgent, schema, did } = prop
 
-    const issuerRepository = tenantAgent.dependencyManager.resolve(OpenId4VcIssuerRepository)
-    const issuer = await issuerRepository.getByIssuerId(tenantAgent.context, did)
+    const issuer = await tenantAgent.openid4vc.issuer.getIssuerByIssuerId(did)
 
     const display = {
       name: schema.name,
@@ -367,7 +362,7 @@ export class SchemaV2Service {
       {},
     )
 
-    await tenantAgent.modules.openId4VcIssuer.updateIssuerMetadata({
+    await tenantAgent.openid4vc.issuer.updateIssuerMetadata({
       issuerId: issuer.issuerId,
       credentialConfigurationsSupported,
       display: issuer.display,

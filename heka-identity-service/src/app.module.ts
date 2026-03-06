@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { join, resolve } from 'path'
 
 import { Module } from '@nestjs/common'
 import { EventEmitterModule } from '@nestjs/event-emitter'
@@ -29,10 +29,12 @@ import { SchemaModule } from './schema'
 import { SchemaV2Module } from './schema-v2'
 import { UserModule } from './user'
 
+const _appRoot = typeof __dirname !== 'undefined' ? resolve(__dirname, '..') : process.cwd()
+
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', fileStorageConfigDefaults.fileSystem.path),
+      rootPath: join(_appRoot, fileStorageConfigDefaults.fileSystem.path),
     }),
     CoreModule,
     UserModule,

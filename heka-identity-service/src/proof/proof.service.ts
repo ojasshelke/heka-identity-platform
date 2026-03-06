@@ -1,4 +1,4 @@
-import type { W3cJsonPresentation } from '@credo-ts/core/build/modules/vc/models/presentation/W3cJsonPresentation'
+import type { W3cJsonPresentation } from '@credo-ts/core'
 
 import {
   AnonCredsCredentialDefinition,
@@ -6,7 +6,7 @@ import {
   AnonCredsRequestedPredicate,
 } from '@credo-ts/anoncreds'
 import { CredoError } from '@credo-ts/core'
-import { ProofState } from '@credo-ts/didcomm'
+import { DidCommProofState } from '@credo-ts/didcomm'
 import {
   BadRequestException,
   ConflictException,
@@ -30,19 +30,19 @@ import { ProofRequestFormat } from './dto/proof-request.dto'
 @Injectable()
 export class ProofService {
   public async find(tenantAgent: TenantAgent, threadId?: string): Promise<ProofRecordDto[]> {
-    const proofRecords = await tenantAgent.modules.proofs.findAllByQuery({ threadId })
+    const proofRecords = await tenantAgent.didcomm.proofs.findAllByQuery({ threadId })
     return proofRecords.map((record) => new ProofRecordDto(record))
   }
 
   public async request(tenantAgent: TenantAgent, req: ProofRequestDto): Promise<ProofRecordDto> {
-    const connectionRecord = await tenantAgent.modules.connections.findById(req.connectionId)
+    const connectionRecord = await tenantAgent.didcomm.connections.findById(req.connectionId)
     if (!connectionRecord) {
       throw new UnprocessableEntityException(`Referenced connection with ID=${req.connectionId} not found`)
     }
 
     const proofRequest = await this.buildRequest(tenantAgent, req)
 
-    const proofRecord = await tenantAgent.modules.proofs.requestProof({
+    const proofRecord = await tenantAgent.didcomm.proofs.requestProof({
       connectionId: req.connectionId,
       comment: req.comment,
       protocolVersion: 'v2',
@@ -53,14 +53,14 @@ export class ProofService {
   }
 
   public async get(tenantAgent: TenantAgent, id: string): Promise<ProofRecordDto> {
-    const proofRecord = await tenantAgent.modules.proofs.findById(id)
+    const proofRecord = await tenantAgent.didcomm.proofs.findById(id)
     if (!proofRecord) {
       throw new NotFoundException('Proof record not found')
     }
 
     const proofRecordDto = new ProofRecordDto(proofRecord)
 
-    const formatData = await tenantAgent.modules.proofs.getFormatData(id)
+    const formatData = await tenantAgent.didcomm.proofs.getFormatData(id)
 
     if (formatData.presentation?.anoncreds) {
       // @ts-ignore
@@ -101,16 +101,16 @@ export class ProofService {
   }
 
   public async present(tenantAgent: TenantAgent, id: string): Promise<ProofRecordDto> {
-    let proofRecord = await tenantAgent.modules.proofs.findById(id)
+    let proofRecord = await tenantAgent.didcomm.proofs.findById(id)
     if (!proofRecord) {
       throw new NotFoundException('Proof record not found')
     }
-    if (proofRecord.state === ProofState.Done) {
+    if (proofRecord.state === DidCommProofState.Done) {
       throw new ConflictException('Proof is already presented')
     }
 
     try {
-      proofRecord = await tenantAgent.modules.proofs.acceptRequest({ proofRecordId: id })
+      proofRecord = await tenantAgent.didcomm.proofs.acceptRequest({ proofExchangeRecordId: id })
     } catch (err) {
       if (err instanceof CredoError && err.message === 'Unable to automatically select requested attributes') {
         throw new UnprocessableEntityException(err.message)
