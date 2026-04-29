@@ -1,7 +1,6 @@
+import { User, UserRole } from '@core/database'
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-
-import { User, UserRole } from '@core/database'
 
 import { ROLES_KEY } from './roles.decorator'
 

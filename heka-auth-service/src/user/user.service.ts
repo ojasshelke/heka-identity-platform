@@ -2,7 +2,13 @@ import { ConfigService } from '@config'
 import { User, UserRole } from '@core/database'
 import { TokenType } from '@core/database/entities/token.entity'
 import { TokenRepository, UserRepository } from '@core/database/repositories'
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common'
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { ExpiresInToDate, hashPassword, verifyPassword } from '@utils'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -40,7 +46,11 @@ export class UserService {
     return new RegisterUserResponse()
   }
 
-  public async updateUserRole(currentUserId: string, targetId: string, role: UserRole): Promise<UpdateUserRoleResponse> {
+  public async updateUserRole(
+    currentUserId: string,
+    targetId: string,
+    role: UserRole,
+  ): Promise<UpdateUserRoleResponse> {
     const user = await this.userRepository.findOne({ id: targetId })
     if (!user) {
       throw new NotFoundException(`User '${targetId}' not found`)
@@ -48,8 +58,8 @@ export class UserService {
 
     if (currentUserId === targetId && role !== UserRole.Admin) {
       const adminCount = await this.userRepository.count({ role: UserRole.Admin })
-      if (adminCount === 1) {
-        throw new BadRequestException('Cannot remove admin role from the only remaining admin account')
+      if (adminCount <= 1) {
+        throw new BadRequestException('Cannot remove the admin role from the only remaining admin account')
       }
     }
 

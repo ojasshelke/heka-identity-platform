@@ -93,7 +93,6 @@ describe('E2E authorization', () => {
       .send({
         name: user.name,
         password: user.password,
-        role: UserRole.Issuer,
       } satisfies RegisterUserRequest)
 
     expect(createUserResponse.status).toBe(201)
