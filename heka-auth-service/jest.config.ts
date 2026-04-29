@@ -5,7 +5,6 @@ const config: Config = {
   moduleFileExtensions: ['ts', 'js', 'json'],
   testMatch: ['**/?(*.)+(spec|test).[jt]s'],
   testTimeout: 1200000,
-  setupFiles: ['reflect-metadata'],
   transform: {
     '\\.[jt]s$': 'ts-jest',
   },
@@ -20,3 +19,4 @@ const config: Config = {
 }
 
 export default config
+
