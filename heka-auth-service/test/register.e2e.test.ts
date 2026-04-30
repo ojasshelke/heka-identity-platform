@@ -27,6 +27,10 @@ describe('E2E register privilege-escalation prevention', () => {
     app = nestApp.getHttpServer() as Server
   })
 
+  beforeEach(async () => {
+    await ormSchemaGenerator.clearDatabase()
+  })
+
   afterAll(async () => {
     await nestApp.close()
     await ormSchemaGenerator.clearDatabase()
