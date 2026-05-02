@@ -65,6 +65,7 @@ export const OpenIdCredentialOffer: React.FC<CredentialOfferProps> = ({ navigati
         const credential = await mapCredentialRecord(credentialRecord, agent)
 
         setCredential(credential)
+        return true
       } catch (error: unknown) {
         console.error(`Couldn't receive credential from OpenID4VCI offer`, {
           error,
@@ -79,6 +80,7 @@ export const OpenIdCredentialOffer: React.FC<CredentialOfferProps> = ({ navigati
           )
         )
         navigateToHome()
+        return false
       }
     },
     [
@@ -130,6 +132,7 @@ export const OpenIdCredentialOffer: React.FC<CredentialOfferProps> = ({ navigati
 
     if (isUserPinRequired) {
       setIsCredentialPinInputVisible(true)
+      setIsLoading(false)
     } else {
       requestCredential().finally(() => setIsLoading(false))
     }
@@ -159,9 +162,11 @@ export const OpenIdCredentialOffer: React.FC<CredentialOfferProps> = ({ navigati
   }
 
   const onCredentialPinConfirm = async (pin: string) => {
-    await requestCredential(pin)
-    setIsCredentialPinInputVisible(false)
-    setIsLoading(false)
+    const success = await requestCredential(pin)
+    if (success) {
+      setIsCredentialPinInputVisible(false)
+      setIsLoading(false)
+    }
   }
 
   const onCredentialPinCancel = () => {
@@ -170,7 +175,20 @@ export const OpenIdCredentialOffer: React.FC<CredentialOfferProps> = ({ navigati
   }
 
   if (isLoading || !credential) {
-    return <LoadingView />
+    return (
+      <>
+        <LoadingView />
+        <ConfirmationInputModal
+          title={t('CredentialOffer.EnterCredentialPIN')}
+          inputType={ConfirmationInputType.Password}
+          inputLabel={t('Common.Code')}
+          isVisible={isCredentialPinInputVisible}
+          doneButtonTitle={t('Global.Confirm')}
+          onConfirm={onCredentialPinConfirm}
+          onCancel={onCredentialPinCancel}
+        />
+      </>
+    )
   }
 
   return (
